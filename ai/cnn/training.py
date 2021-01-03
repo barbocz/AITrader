@@ -20,6 +20,7 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras import regularizers
 from sklearn.metrics import f1_score
 from sklearn.metrics import confusion_matrix, roc_auc_score, cohen_kappa_score
+from numpy import save,load
 
 
 def init_variables():
@@ -34,47 +35,56 @@ def init_variables():
     model_path = re.sub('[^A-Za-z0-9]+', '', f.readline().split(':')[1])
 
     best_model_path = os.path.join('.', 'best_models', model_path)
+    try:
+        os.mkdir(best_model_path)
+    except OSError:
+        pass
+    else:
+        print("Successfully created the directory %s " % best_model_path)
 
     df = pd.read_csv(metatrader_dir+"Training.csv")
+    df = df.drop(columns=['date', 'open', 'high', 'low', 'close'])
+
     df['labels'] = df['labels'].astype(np.int8)
     print("Creating model for",model_path," with ", df.shape, " shape" )
 
 
 
 def create_arrays_for_trainig_testing_validation():
-    global df,x_train,x_cv,x_test,y_train,y_test,y_cv,list_features
+    global df,x_train,x_validation,x_test,y_train,y_test,y_validation,list_features
     df = df.drop(columns=df.columns[df.nunique() <= 1])
     last_feature = df.columns.ravel()[df.columns.ravel().size - 2]
 
-    list_features = list(df.loc[:, 'open':last_feature].columns)
+    list_features = list(df.loc[:, 'volume':last_feature].columns)
     print('Total number of features', len(list_features))
-    x_train, x_test, y_train, y_test = train_test_split(df.loc[:, 'open':last_feature].values, df['labels'].values,
+    x_train, x_test, y_train, y_test = train_test_split(df.loc[:, 'volume':last_feature].values, df['labels'].values,
                                                         train_size=0.8,
                                                         test_size=0.2, random_state=2, stratify=df['labels'].values)
-    x_train, x_cv, y_train, y_cv = train_test_split(x_train, y_train, train_size=0.7, test_size=1 - 0.7,
-                                                    random_state=2, stratify=y_train)
+    x_train, x_validation, y_train, y_validation = train_test_split(x_train, y_train, train_size=0.7, test_size=1 - 0.7,
+                                                                    random_state=2, stratify=y_train)
+
 
 
 def data_wrangling():
-    global x_train,x_cv,x_test,y_train,y_test,y_cv,x_main
+    global x_train,x_validation,x_test,y_train,y_test,y_validation,x_main
     my_imputer = SimpleImputer()
     x_train = my_imputer.fit_transform(x_train)
-    x_cv = my_imputer.fit_transform(x_cv)
+    x_validation = my_imputer.fit_transform(x_validation)
 
-    x_main = x_train.copy()
-    x_main = my_imputer.fit_transform(x_main)
+    # x_main = x_train.copy()
+    # x_main = my_imputer.fit_transform(x_main)
 
     mm_scaler = MinMaxScaler(feature_range=(0, 1))  # or StandardScaler?
     x_train = mm_scaler.fit_transform(x_train)
-    x_cv = mm_scaler.transform(x_cv)
+    x_validation = mm_scaler.transform(x_validation)
     x_test = mm_scaler.transform(x_test)
-    print("Shapes of train: {} {}, validation: {} {}, test: {} {}".format(x_train.shape, y_train.shape, x_cv.shape, y_cv.shape,
-                                                                  x_test.shape, y_test.shape))
+    print("Shapes of train: {} {}, validation: {} {}, test: {} {}".format(x_train.shape, y_train.shape, x_validation.shape, y_validation.shape,
+                                                                          x_test.shape, y_test.shape))
 
 
 
 def select_best_features():
-    global x_train, x_cv, x_test, y_train, y_test, y_cv,x_main,list_features,num_features
+    global x_train, x_validation, x_test, y_train, y_test, y_validation,x_main,list_features,num_features
 
 
     selection_method = 'all'
@@ -85,7 +95,7 @@ def select_best_features():
         select_k_best = SelectKBest(f_classif, k=topk)
         if selection_method != 'all':
             x_train = select_k_best.fit_transform(x_main, y_train)
-            x_cv = select_k_best.transform(x_cv)
+            x_validation = select_k_best.transform(x_validation)
             x_test = select_k_best.transform(x_test)
         else:
             select_k_best.fit(x_train, y_train)
@@ -99,7 +109,7 @@ def select_best_features():
         select_k_best = SelectKBest(mutual_info_classif, k=topk)
         if selection_method != 'all':
             x_train = select_k_best.fit_transform(x_main, y_train)
-            x_cv = select_k_best.transform(x_cv)
+            x_validation = select_k_best.transform(x_validation)
             x_test = select_k_best.transform(x_test)
         else:
             select_k_best.fit(x_train, y_train)
@@ -125,17 +135,18 @@ def select_best_features():
     columns_needed = []
     for c in feat_idx:
         columns_needed.append(list_features[c])
-    # columns_needed.append('labels')
-    # columns_needed=pd.DataFrame(columns_needed).columns.ravel()
+
+    pd.DataFrame(columns_needed).to_csv(os.path.join('.', 'best_models', model_path, 'columns_needed.csv'),
+                                        header=False, index=False)
     print("Featured columns: ",columns_needed)
 
     if selection_method == 'all':
         x_train = x_train[:, feat_idx]
-        x_cv = x_cv[:, feat_idx]
+        x_validation = x_validation[:, feat_idx]
         x_test = x_test[:, feat_idx]
 
-    print("Shapes of train after best feature selection: {} {}, validation: {} {}, test: {} {}".format(x_train.shape, y_train.shape, x_cv.shape, y_cv.shape,
-                                                                  x_test.shape, y_test.shape))
+    print("Shapes of train after best feature selection: {} {}, validation: {} {}, test: {} {}".format(x_train.shape, y_train.shape, x_validation.shape, y_validation.shape,
+                                                                                                       x_test.shape, y_test.shape))
     _labels, _counts = np.unique(y_train, return_counts=True)
     print("Percentage of class 0 = {}, class 1 = {}".format(_counts[0] / len(y_train) * 100,
                                                             _counts[1] / len(y_train) * 100))
@@ -243,28 +254,28 @@ def f1_metric(y_true, y_pred):
     return 2 * ((precision * recall) / (precision + recall + K.epsilon()))
 
 def reshape_arrays():
-    global x_train, x_cv, x_test, y_train, y_test, y_cv,num_features,sample_weights
+    global x_train, x_validation, x_test, y_train, y_test, y_validation,num_features,sample_weights
 
     sample_weights = get_sample_weights(y_train)
 
     one_hot_enc = OneHotEncoder(sparse=False, categories='auto')  # , categories='auto'
     y_train = one_hot_enc.fit_transform(y_train.reshape(-1, 1))
 
-    y_cv = one_hot_enc.fit_transform(y_cv.reshape(-1, 1))
+    y_validation = one_hot_enc.fit_transform(y_validation.reshape(-1, 1))
 
     y_test = one_hot_enc.fit_transform(y_test.reshape(-1, 1))
 
     dim = int(np.sqrt(num_features))
     x_train = reshape_as_image(x_train, dim, dim)
-    x_cv = reshape_as_image(x_cv, dim, dim)
+    x_validation = reshape_as_image(x_validation, dim, dim)
     x_test = reshape_as_image(x_test, dim, dim)
     # adding a 1-dim for channels (3)
     x_train = np.stack((x_train,) * 3, axis=-1)
     x_test = np.stack((x_test,) * 3, axis=-1)
-    x_cv = np.stack((x_cv,) * 3, axis=-1)
+    x_validation = np.stack((x_validation,) * 3, axis=-1)
 
-    print("Shapes of train: {} {}, validation: {} {}, test: {} {}".format(x_train.shape, y_train.shape, x_cv.shape, y_cv.shape,
-                                                                  x_test.shape, y_test.shape))
+    print("Shapes of train: {} {}, validation: {} {}, test: {} {}".format(x_train.shape, y_train.shape, x_validation.shape, y_validation.shape,
+                                                                          x_test.shape, y_test.shape))
 def f1_custom(y_true, y_pred):
     y_t = np.argmax(y_true, axis=1)
     y_p = np.argmax(y_pred, axis=1)
@@ -354,14 +365,18 @@ def fit_model():
     mcp = ModelCheckpoint(best_model_path, monitor='val_f1_metric', verbose=1,
                           save_best_only=True, save_weights_only=False, mode='max', period=1)  # val_f1_metric
     history = model.fit(x_train, y_train, epochs=params['epochs'], verbose=1,
-                                batch_size=64,
-                                # validation_split=0.3,
-                                validation_data=(x_cv, y_cv),
-                                callbacks=[mcp, rlp, es]
-                                , sample_weight=sample_weights)
+                        batch_size=64,
+                        # validation_split=0.3,
+                        validation_data=(x_validation, y_validation),
+                        callbacks=[mcp, rlp, es]
+                        , sample_weight=sample_weights)
 
 def evaluate_model():
     global model,x_test,y_test
+    # save('x_test.npy', x_test)
+    # save('y_test.npy', y_test)
+    # x_test = load('x_test.npy')
+    # y_test=load('y_test.npy')
 
     pred = model.predict(x_test)
     pred_classes = np.argmax(pred, axis=1)
@@ -398,7 +413,8 @@ reshape_arrays()
 
 get_custom_objects().update({"f1_metric": f1_metric})
 model = create_model_cnn()
-# fit_model()
+fit_model()
+
 model = load_model(best_model_path,custom_objects={"f1_metric": f1_metric})
 evaluate_model()
 
