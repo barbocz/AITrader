@@ -1,0 +1,14 @@
+best_model_path:GBPUSD_1
+Total bar: 5000, Total test bar: 1000
+Symbol: GBPUSD, Timeframes: 3 4 6 10 15 30 60 
+totalIndicatorNumber: 10
+0. mfi(5) buffers: 1
+1. laguerre_rsi_wi buffers: 5
+2. 3_minutes_relat buffers: 9
+4. fxc_activityfor buffers: 6
+5. rsi(14) buffers: 1
+6. macd(12_26_9) buffers: 2
+7. stoch(8_5_3) buffers: 2
+8. murreys_math_os buffers: 2
+9. 3_minutes_relat buffers: 9
+Feature number: 264
