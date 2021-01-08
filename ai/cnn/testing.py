@@ -24,11 +24,11 @@ from numpy import save,load
 
 def init_variables():
 
-    global df,x_test,y_test,best_model_path
+    global df,x_test,y_test,best_model_path,df_origin, x_test_live, df_live_origin
     np.random.seed(2)
     tf.random.set_seed(2)
     num_features=196
-    metatrader_dir="C:\\Users\\Barbocz Attila\\AppData\\Roaming\\MetaQuotes\\Terminal\\67381DD86A2959850232C0BA725E5966\\MQL5\\Files\\"
+    metatrader_dir="C:\\Users\\melgibson\\AppData\Roaming\\MetaQuotes\\Terminal\\6E837615CE50F086D7E2801AA8E2160A\\MQL5\\Files\\"
     f = open(metatrader_dir+"Parameters.txt","r")
     # print(f.readline().split(':')[1])
     # f.readline().split(':')[1]
@@ -36,20 +36,30 @@ def init_variables():
 
     best_model_path = os.path.join('.', 'best_models', model_path)
 
-    df = pd.read_csv(metatrader_dir+"Testing.csv")
+    df_origin = pd.read_csv(metatrader_dir+"Testing.csv")
+    df=df_origin
+
+    df_live_origin = pd.read_csv(metatrader_dir + "LiveTesting.csv")
+    df_live=df_live_origin
+
     y_test = df['labels'].astype(np.int8).to_numpy()
     colums_needed = list(pd.read_csv(os.path.join(best_model_path, 'columns_needed.csv'), header=None).T.values[0])
 
     df = df[colums_needed]
+    df_live=df_live[colums_needed]
 
     x_test = df.to_numpy()
+    x_test_live = df_live.to_numpy()
 
 def data_wrangling():
-    global x_test,y_test
+    global x_test,y_test, x_test_live
     my_imputer = SimpleImputer()
     x_test = my_imputer.fit_transform(x_test)
+    x_test_live= my_imputer.fit_transform(x_test_live)
     mm_scaler = MinMaxScaler(feature_range=(0, 1))  # or StandardScaler?
+
     x_test = mm_scaler.fit_transform(x_test)
+    x_test_live = mm_scaler.fit_transform(x_test_live)
 
     print("Shapes of train: {} {}".format( x_test.shape, y_test.shape))
 
@@ -63,7 +73,7 @@ def reshape_as_image(x, img_width, img_height):
     return x_temp
 
 def reshape_arrays():
-    global x_test, y_test
+    global x_test, y_test , x_test_live
 
     one_hot_enc = OneHotEncoder(sparse=False, categories='auto')  # , categories='auto'
     y_test = one_hot_enc.fit_transform(y_test.reshape(-1, 1))
@@ -71,6 +81,11 @@ def reshape_arrays():
     dim = int(np.sqrt(196))
     x_test = reshape_as_image(x_test, dim, dim)
     x_test = np.stack((x_test,) * 3, axis=-1)
+
+    x_test_live = reshape_as_image(x_test_live, dim, dim)
+    x_test_live = np.stack((x_test_live,) * 3, axis=-1)
+
+
 
     print("Shapes of train:{} {}".format( x_test.shape, y_test.shape))
 
@@ -148,3 +163,17 @@ reshape_arrays()
 
 model = load_model(best_model_path,custom_objects={"f1_metric": f1_metric})
 evaluate_model()
+
+pred = model.predict(x_test_live)
+
+prob=np.max(pred, axis=1)
+
+pred_classes = np.argmax(pred, axis=1)
+
+combo = np.stack((df_live_origin['date'].to_numpy(),prob, pred_classes), axis=1)
+df = pd.DataFrame(combo)
+pd.set_option('display.max_rows', 200)
+df.to_csv('output_new.csv',header=False,index=False)
+# newdf = df[(df.origin == "JFK") & (df.carrier == "B6")]
+
+
