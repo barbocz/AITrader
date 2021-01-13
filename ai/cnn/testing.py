@@ -22,13 +22,15 @@ from sklearn.metrics import f1_score
 from sklearn.metrics import confusion_matrix, roc_auc_score, cohen_kappa_score
 from numpy import save,load
 
+metatrader_dir="C:\\Users\\melgibson\\AppData\Roaming\\MetaQuotes\\Terminal\\6E837615CE50F086D7E2801AA8E2160A\\MQL5\\Files\\"
+
 def init_variables():
 
     global df,x_test,y_test,best_model_path,df_origin, x_test_live, df_live_origin
     np.random.seed(2)
     tf.random.set_seed(2)
     num_features=196
-    metatrader_dir="C:\\Users\\melgibson\\AppData\Roaming\\MetaQuotes\\Terminal\\6E837615CE50F086D7E2801AA8E2160A\\MQL5\\Files\\"
+
     f = open(metatrader_dir+"Parameters.txt","r")
     # print(f.readline().split(':')[1])
     # f.readline().split(':')[1]
@@ -46,9 +48,11 @@ def init_variables():
     colums_needed = list(pd.read_csv(os.path.join(best_model_path, 'columns_needed.csv'), header=None).T.values[0])
 
     df = df[colums_needed]
+    print("Type ",df['laguerre_rsi_wi_T3_B2'].dtype)
     df_live=df_live[colums_needed]
 
     x_test = df.to_numpy()
+    print(x_test)
     x_test_live = df_live.to_numpy()
 
 def data_wrangling():
@@ -173,7 +177,7 @@ pred_classes = np.argmax(pred, axis=1)
 combo = np.stack((df_live_origin['date'].to_numpy(),prob, pred_classes), axis=1)
 df = pd.DataFrame(combo)
 pd.set_option('display.max_rows', 200)
-df.to_csv('output_new.csv',header=False,index=False)
-# newdf = df[(df.origin == "JFK") & (df.carrier == "B6")]
+df.to_csv(metatrader_dir+'output_new.csv',header=False,index=False)
+
 
 
