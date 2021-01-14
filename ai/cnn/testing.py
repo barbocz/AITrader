@@ -24,6 +24,7 @@ from numpy import save,load
 
 metatrader_dir="C:\\Users\\melgibson\\AppData\Roaming\\MetaQuotes\\Terminal\\6E837615CE50F086D7E2801AA8E2160A\\MQL5\\Files\\"
 
+
 def init_variables():
 
     global df,x_test,y_test,best_model_path,df_origin, x_test_live, df_live_origin
@@ -48,21 +49,25 @@ def init_variables():
     colums_needed = list(pd.read_csv(os.path.join(best_model_path, 'columns_needed.csv'), header=None).T.values[0])
 
     df = df[colums_needed]
-    print("Type ",df['laguerre_rsi_wi_T3_B2'].dtype)
+
     df_live=df_live[colums_needed]
 
     x_test = df.to_numpy()
-    print(x_test)
+
     x_test_live = df_live.to_numpy()
 
 def data_wrangling():
-    global x_test,y_test, x_test_live
+    global x_test,y_test, x_test_live,best_model_path
     my_imputer = SimpleImputer()
     x_test = my_imputer.fit_transform(x_test)
+
+
     x_test_live= my_imputer.fit_transform(x_test_live)
     mm_scaler = MinMaxScaler(feature_range=(0, 1))  # or StandardScaler?
 
     x_test = mm_scaler.fit_transform(x_test)
+
+
     x_test_live = mm_scaler.fit_transform(x_test_live)
 
     print("Shapes of train: {} {}".format( x_test.shape, y_test.shape))

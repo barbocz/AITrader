@@ -28,7 +28,7 @@ def init_variables():
     np.random.seed(2)
     tf.random.set_seed(2)
     num_features=196
-    metatrader_dir="C:\\Users\\Barbocz Attila\\AppData\\Roaming\\MetaQuotes\\Terminal\\67381DD86A2959850232C0BA725E5966\\MQL5\\Files\\"
+    metatrader_dir="C:\\Users\\melgibson\\AppData\Roaming\\MetaQuotes\\Terminal\\6E837615CE50F086D7E2801AA8E2160A\\MQL5\\Files\\"
     f = open(metatrader_dir+"Parameters.txt","r")
     # print(f.readline().split(':')[1])
     # f.readline().split(':')[1]
@@ -43,7 +43,7 @@ def init_variables():
         print("Successfully created the directory %s " % best_model_path)
 
     df = pd.read_csv(metatrader_dir+"Training.csv")
-    df = df.drop(columns=['date', 'open', 'high', 'low', 'close'])
+    df = df.drop(columns=['date', 'open', 'high', 'low'])
 
     df['labels'] = df['labels'].astype(np.int8)
     print("Creating model for",model_path," with ", df.shape, " shape" )
@@ -55,11 +55,11 @@ def create_arrays_for_trainig_testing_validation():
     df = df.drop(columns=df.columns[df.nunique() <= 1])
     last_feature = df.columns.ravel()[df.columns.ravel().size - 2]
 
-    list_features = list(df.loc[:, 'volume':last_feature].columns)
+    list_features = list(df.loc[:, 'close':last_feature].columns)
     print('Total number of features', len(list_features))
-    x_train, x_test, y_train, y_test = train_test_split(df.loc[:, 'volume':last_feature].values, df['labels'].values,
-                                                        train_size=0.8,
-                                                        test_size=0.2, random_state=2, stratify=df['labels'].values)
+    x_train, x_test, y_train, y_test = train_test_split(df.loc[:, 'close':last_feature].values, df['labels'].values,
+                                                        train_size=0.98,
+                                                        test_size=0.02, random_state=2, stratify=df['labels'].values)
     x_train, x_validation, y_train, y_validation = train_test_split(x_train, y_train, train_size=0.7, test_size=1 - 0.7,
                                                                     random_state=2, stratify=y_train)
 
@@ -80,8 +80,6 @@ def data_wrangling():
     x_test = mm_scaler.transform(x_test)
     print("Shapes of train: {} {}, validation: {} {}, test: {} {}".format(x_train.shape, y_train.shape, x_validation.shape, y_validation.shape,
                                                                           x_test.shape, y_test.shape))
-
-
 
 def select_best_features():
     global x_train, x_validation, x_test, y_train, y_test, y_validation,x_main,list_features,num_features
@@ -144,6 +142,11 @@ def select_best_features():
         x_train = x_train[:, feat_idx]
         x_validation = x_validation[:, feat_idx]
         x_test = x_test[:, feat_idx]
+
+    mm_scaler = MinMaxScaler(feature_range=(0, 1))  # or StandardScaler?
+    mm_scaler.fit_transform(x_train)
+    import joblib
+    joblib.dump(mm_scaler, os.path.join(best_model_path, 'mm_scaler.joblib'))
 
     print("Shapes of train after best feature selection: {} {}, validation: {} {}, test: {} {}".format(x_train.shape, y_train.shape, x_validation.shape, y_validation.shape,
                                                                                                        x_test.shape, y_test.shape))
