@@ -66,13 +66,14 @@ def create_arrays_for_trainig_testing_validation():
 
 
 def data_wrangling():
-    global x_train,x_validation,x_test,y_train,y_test,y_validation,x_main
+    global x_train,x_validation,x_test,y_train,y_test,y_validation,x_main,pre_scaler_train
     my_imputer = SimpleImputer()
     x_train = my_imputer.fit_transform(x_train)
     x_validation = my_imputer.fit_transform(x_validation)
 
     # x_main = x_train.copy()
     # x_main = my_imputer.fit_transform(x_main)
+    pre_scaler_train=x_train
 
     mm_scaler = MinMaxScaler(feature_range=(0, 1))  # or StandardScaler?
     x_train = mm_scaler.fit_transform(x_train)
@@ -82,7 +83,7 @@ def data_wrangling():
                                                                           x_test.shape, y_test.shape))
 
 def select_best_features():
-    global x_train, x_validation, x_test, y_train, y_test, y_validation,x_main,list_features,num_features
+    global x_train, x_validation, x_test, y_train, y_test, y_validation,x_main,list_features,num_features,pre_scaler_train
 
 
     selection_method = 'all'
@@ -142,9 +143,10 @@ def select_best_features():
         x_train = x_train[:, feat_idx]
         x_validation = x_validation[:, feat_idx]
         x_test = x_test[:, feat_idx]
+        pre_scaler_train= pre_scaler_train[:, feat_idx]
 
     mm_scaler = MinMaxScaler(feature_range=(0, 1))  # or StandardScaler?
-    mm_scaler.fit_transform(x_train)
+    mm_scaler=mm_scaler.fit(pre_scaler_train)
     import joblib
     joblib.dump(mm_scaler, os.path.join(best_model_path, 'mm_scaler.joblib'))
 
@@ -414,12 +416,12 @@ data_wrangling()
 select_best_features()
 reshape_arrays()
 
-get_custom_objects().update({"f1_metric": f1_metric})
-model = create_model_cnn()
-fit_model()
-
-model = load_model(best_model_path,custom_objects={"f1_metric": f1_metric})
-evaluate_model()
+# get_custom_objects().update({"f1_metric": f1_metric})
+# model = create_model_cnn()
+# fit_model()
+#
+# model = load_model(best_model_path,custom_objects={"f1_metric": f1_metric})
+# evaluate_model()
 
 
 

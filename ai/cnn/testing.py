@@ -56,19 +56,24 @@ def init_variables():
 
     x_test_live = df_live.to_numpy()
 
+
 def data_wrangling():
     global x_test,y_test, x_test_live,best_model_path
     my_imputer = SimpleImputer()
     x_test = my_imputer.fit_transform(x_test)
 
 
-    x_test_live= my_imputer.fit_transform(x_test_live)
-    mm_scaler = MinMaxScaler(feature_range=(0, 1))  # or StandardScaler?
+
+    # x_test_live= my_imputer.fit_transform(x_test_live)
+    # mm_scaler = MinMaxScaler(feature_range=(0, 1))  # or StandardScaler?
+    import joblib
+    mm_scaler = joblib.load(os.path.join(best_model_path, 'mm_scaler.joblib'))
 
     x_test = mm_scaler.fit_transform(x_test)
 
-
     x_test_live = mm_scaler.fit_transform(x_test_live)
+
+
 
     print("Shapes of train: {} {}".format( x_test.shape, y_test.shape))
 
@@ -141,6 +146,8 @@ def evaluate_model():
     # y_test=load('y_test.npy')
 
     pred = model.predict(x_test)
+
+
     pred_classes = np.argmax(pred, axis=1)
     y_test_classes = np.argmax(y_test, axis=1)
     check_baseline(pred_classes, y_test_classes)
@@ -172,6 +179,8 @@ reshape_arrays()
 
 model = load_model(best_model_path,custom_objects={"f1_metric": f1_metric})
 evaluate_model()
+
+
 
 pred = model.predict(x_test_live)
 

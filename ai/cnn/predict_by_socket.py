@@ -160,15 +160,71 @@ def start_prediction(msg = ''):
     print(pred_classes)
 
 
+    return str("OK")
+
+# serv = socketserver('127.0.0.1', 9090)
+#
+# while True:
+#     msg = serv.recvmsg()
+
+def start_test_prediction():
+    metatrader_dir = "C:\\Users\\melgibson\\AppData\Roaming\\MetaQuotes\\Terminal\\6E837615CE50F086D7E2801AA8E2160A\\MQL5\\Files\\"
+    df = pd.read_csv(metatrader_dir+"ref.csv")
+
+    # print(msg)
+    # msg_parts=msg.split('|')
+    # columns=msg_parts[0]
+    # columns = columns.split(',')
+    # del columns[0]
+    # date_string=msg_parts[1].split(',')[0]
+    # features=np.array(msg_parts[1].split(',')[1:])
+    # data = np.array([features]).astype(np.float)
+    # df = pd.DataFrame(data, columns=columns)
+    #
+    np.random.seed(2)
+    tf.random.set_seed(2)
+    best_model_path = os.path.join('.', 'best_models', 'EURUSD1')
+
+    colums_needed = list(pd.read_csv(os.path.join(best_model_path, 'columns_needed.csv'), header=None).T.values[0])
+    df = df[colums_needed]
+    x_test = df.to_numpy()
+    print(1,x_test)
+
+    my_imputer = SimpleImputer()
+    x_test = my_imputer.fit_transform(x_test)
+    # print(2, x_test)
+
+
+    # mm_scaler = MinMaxScaler(feature_range=(0, 1))  # or StandardScaler?
+    mm_scaler = joblib.load(os.path.join(best_model_path, 'mm_scaler.joblib'))
+    x_test = mm_scaler.transform(x_test)
+    print(3, x_test)
+
+    dim = int(np.sqrt(196))
+    x_test = reshape_as_image(x_test, dim, dim)
+    # print(4, x_test)
+    x_test = np.stack((x_test,) * 3, axis=-1)
+    # print(5, x_test)
+
+
+    model = load_model(best_model_path, custom_objects={"f1_metric": f1_metric})
+    pred = model.predict(x_test)
+    print(pred)
+    prob = np.max(pred, axis=1)
+    pred_classes = np.argmax(pred, axis=1)
+
+
+
+    print(prob)
+    print('------------')
+    print(pred_classes)
+
 
 
     return str("OK")
 
-serv = socketserver('127.0.0.1', 9090)
 
-while True:  
-    msg = serv.recvmsg()
-
+start_test_prediction()
 
 
     
