@@ -58,7 +58,7 @@ rates_frame = pd.DataFrame(rates)
 
 # print(rates_frame)
 
-serv = socketserver('127.0.0.1', 9090)
+serv = socketserver('localhost', 9090)
 
 while True:
     msg = serv.recvmsg()

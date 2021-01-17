@@ -26,7 +26,8 @@ from numpy import save,load
 import joblib
 
 # Együttműködik az MT5 Script folder-ben található Getdata script-tel. Ha abban az IsSocketSending=true, akkor a script küldi ennek a megfelelő socket-et
-metatrader_dir="C:\\Users\\melgibson\\AppData\Roaming\\MetaQuotes\\Terminal\\6E837615CE50F086D7E2801AA8E2160A\\MQL5\\Files\\"
+metatrader_dir="C:\\Users\\Barbocz Attila\\AppData\\Roaming\\MetaQuotes\\Terminal\\67381DD86A2959850232C0BA725E5966\\MQL5\Files\\"
+
 
 class socketserver:
     def __init__(self, address = 'localhost', port = 9090):
@@ -127,8 +128,10 @@ def start_prediction(msg = ''):
     np.random.seed(2)
     tf.random.set_seed(2)
     best_model_path = os.path.join('.', 'best_models', 'EURUSD1')
+    print(df.head())
 
     colums_needed = list(pd.read_csv(os.path.join(best_model_path, 'columns_needed.csv'), header=None).T.values[0])
+    print(colums_needed)
     df = df[colums_needed]
     x_test = df.to_numpy()
     # print(1,x_test)
@@ -162,13 +165,13 @@ def start_prediction(msg = ''):
 
     return str("OK")
 
-# serv = socketserver('127.0.0.1', 9090)
-#
-# while True:
-#     msg = serv.recvmsg()
+serv = socketserver('127.0.0.1', 9090)
+
+while True:
+    msg = serv.recvmsg()
 
 def start_test_prediction():
-    metatrader_dir = "C:\\Users\\melgibson\\AppData\Roaming\\MetaQuotes\\Terminal\\6E837615CE50F086D7E2801AA8E2160A\\MQL5\\Files\\"
+    metatrader_dir = "C:\\Users\\Barbocz Attila\\AppData\\Roaming\\MetaQuotes\\Terminal\\67381DD86A2959850232C0BA725E5966\\MQL5\Files\\"
     df = pd.read_csv(metatrader_dir+"ref.csv")
 
     # print(msg)

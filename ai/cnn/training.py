@@ -28,7 +28,7 @@ def init_variables():
     np.random.seed(2)
     tf.random.set_seed(2)
     num_features=196
-    metatrader_dir="C:\\Users\\melgibson\\AppData\Roaming\\MetaQuotes\\Terminal\\6E837615CE50F086D7E2801AA8E2160A\\MQL5\\Files\\"
+    metatrader_dir="C:\\Users\\Barbocz Attila\\AppData\\Roaming\\MetaQuotes\\Terminal\\67381DD86A2959850232C0BA725E5966\\MQL5\Files\\"
     f = open(metatrader_dir+"Parameters.txt","r")
     # print(f.readline().split(':')[1])
     # f.readline().split(':')[1]
@@ -416,12 +416,12 @@ data_wrangling()
 select_best_features()
 reshape_arrays()
 
-# get_custom_objects().update({"f1_metric": f1_metric})
-# model = create_model_cnn()
-# fit_model()
-#
-# model = load_model(best_model_path,custom_objects={"f1_metric": f1_metric})
-# evaluate_model()
+get_custom_objects().update({"f1_metric": f1_metric})
+model = create_model_cnn()
+fit_model()
+
+model = load_model(best_model_path,custom_objects={"f1_metric": f1_metric})
+evaluate_model()
 
 
 

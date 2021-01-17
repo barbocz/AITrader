@@ -21,8 +21,9 @@ from tensorflow.keras import regularizers
 from sklearn.metrics import f1_score
 from sklearn.metrics import confusion_matrix, roc_auc_score, cohen_kappa_score
 from numpy import save,load
+import warnings
 
-metatrader_dir="C:\\Users\\melgibson\\AppData\Roaming\\MetaQuotes\\Terminal\\6E837615CE50F086D7E2801AA8E2160A\\MQL5\\Files\\"
+metatrader_dir="C:\\Users\\Barbocz Attila\\AppData\\Roaming\\MetaQuotes\\Terminal\\67381DD86A2959850232C0BA725E5966\\MQL5\Files\\"
 
 
 def init_variables():
@@ -61,17 +62,15 @@ def data_wrangling():
     global x_test,y_test, x_test_live,best_model_path
     my_imputer = SimpleImputer()
     x_test = my_imputer.fit_transform(x_test)
-
+    x_test_live = my_imputer.fit_transform(x_test_live)
 
 
     # x_test_live= my_imputer.fit_transform(x_test_live)
     # mm_scaler = MinMaxScaler(feature_range=(0, 1))  # or StandardScaler?
     import joblib
     mm_scaler = joblib.load(os.path.join(best_model_path, 'mm_scaler.joblib'))
-
-    x_test = mm_scaler.fit_transform(x_test)
-
-    x_test_live = mm_scaler.fit_transform(x_test_live)
+    x_test = mm_scaler.transform(x_test)
+    x_test_live = mm_scaler.transform(x_test_live)
 
 
 
@@ -173,6 +172,8 @@ def evaluate_model():
         print("precision of class {} = {}".format(i, prec[i]))
     print("precision avg", sum(prec) / len(prec))
 
+
+warnings.filterwarnings("ignore")
 init_variables()
 data_wrangling()
 reshape_arrays()
@@ -185,6 +186,7 @@ evaluate_model()
 pred = model.predict(x_test_live)
 
 prob=np.max(pred, axis=1)
+
 
 pred_classes = np.argmax(pred, axis=1)
 
