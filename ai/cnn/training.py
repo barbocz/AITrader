@@ -21,18 +21,28 @@ from tensorflow.keras import regularizers
 from sklearn.metrics import f1_score
 from sklearn.metrics import confusion_matrix, roc_auc_score, cohen_kappa_score
 from numpy import save,load
+import configparser
 
+
+cfg = configparser.ConfigParser()
+cfg.read(os.path.join('..','..', 'mt5','metatrader.ini'))
+metatrader_dir=cfg['folders']['files']
+
+f = open(metatrader_dir+"lastProject.txt", "r")
+last_project_dir=f.readline()
+print("Project directory: ",last_project_dir)
+metatrader_dir=metatrader_dir+last_project_dir
 
 def init_variables():
     global df,num_features,model_path,best_model_path
     np.random.seed(2)
     tf.random.set_seed(2)
     num_features=196
-    metatrader_dir="C:\\Users\\Barbocz Attila\\AppData\\Roaming\\MetaQuotes\\Terminal\\67381DD86A2959850232C0BA725E5966\\MQL5\Files\\"
+
     f = open(metatrader_dir+"Parameters.txt","r")
     # print(f.readline().split(':')[1])
     # f.readline().split(':')[1]
-    model_path = re.sub('[^A-Za-z0-9]+', '', f.readline().split(':')[1])
+    model_path = re.sub('[^A-Za-z0-9_]+', '', f.readline().split(':')[1])
 
     best_model_path = os.path.join('.', 'best_models', model_path)
     try:
