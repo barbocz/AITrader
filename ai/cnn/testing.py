@@ -52,7 +52,7 @@ def init_variables():
     df_origin = pd.read_csv(metatrader_dir+"Testing.csv")
     df=df_origin
 
-    df_live_origin = pd.read_csv(metatrader_dir + "LiveTesting.csv")
+    df_live_origin = pd.read_csv(metatrader_dir + "FeatureSockets.csv")
     df_live=df_live_origin
 
     y_test = df['labels'].astype(np.int8).to_numpy()

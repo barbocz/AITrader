@@ -25,68 +25,7 @@ from sklearn.metrics import confusion_matrix, roc_auc_score, cohen_kappa_score
 from numpy import save,load
 import joblib
 import configparser
-
-# Együttműködik az MT5 Script folder-ben található Getdata script-tel. Ha abban az IsSocketSending=true, akkor a script küldi ennek a megfelelő socket-et
-cfg = configparser.ConfigParser()
-cfg.read(os.path.join('..','..', 'mt5','metatrader.ini'))
-metatrader_dir=cfg['folders']['files']
-
-f = open(metatrader_dir+"lastProject.txt", "r")
-last_project_dir=f.readline()
-print("Project directory: ",last_project_dir)
-metatrader_dir=metatrader_dir+last_project_dir
-
-
-class socketserver:
-    def __init__(self, address = 'localhost', port = 9090):
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.address = address
-        self.port = port
-        self.sock.bind((self.address, self.port))
-        self.cummdata = ''
-        
-    def recvmsg(self):
-        self.sock.listen(1)
-        self.conn, self.addr = self.sock.accept()
-        print('connected to', self.addr)
-        self.cummdata = ''
-
-        while True:
-            data = self.conn.recv(10000)
-            self.cummdata+=data.decode("utf-8")
-            if not data:
-                break    
-            self.conn.send(bytes(start_prediction(self.cummdata), "utf-8"))
-            return self.cummdata
-            
-    def __del__(self):
-        self.sock.close()
-        
-def calcregr(msg = ''):
-    # print(msg)
-    msg_parts=msg.split('|')
-    columns=msg_parts[0]
-    columns = columns.split(',')
-    del columns[0]
-    date_string=msg_parts[1].split(',')[0]
-    features=np.array(msg_parts[1].split(',')[1:])
-    data = np.array([features]).astype(np.float)
-    # print(date_string)
-    # print(columns)
-    # print(data)
-    df = pd.DataFrame(data, columns=[columns])
-    # print(df.head(2))
-    # chartdata = np.fromstring(msg, dtype=float, sep= ',')
-    # Y = np.array(chartdata).reshape(-1,1)
-    # X = np.array(np.arange(len(chartdata))).reshape(-1,1)
-    #
-    # lr = LinearRegression()
-    # lr.fit(X, Y)
-    # Y_pred = lr.predict(X)
-    #
-    # P = Y_pred.astype(str).item(-1) + ' ' + Y_pred.astype(str).item(0)
-    # print(P)
-    return str("OK")
+import time
 
 def f1_metric(y_true, y_pred):
     """
@@ -114,6 +53,66 @@ def f1_metric(y_true, y_pred):
 
     return 2 * ((precision * recall) / (precision + recall + K.epsilon()))
 
+# Együttműködik az MT5 Script folder-ben található Getdata script-tel. Ha abban az IsSocketSending=true, akkor a script küldi ennek a megfelelő socket-et
+cfg = configparser.ConfigParser()
+cfg.read(os.path.join('..','..', 'mt5','metatrader.ini'))
+metatrader_dir=cfg['folders']['files']
+
+f = open(metatrader_dir+"lastProject.txt", "r")
+last_project_dir=f.readline()
+print("Project directory: ",last_project_dir)
+metatrader_dir=metatrader_dir+last_project_dir
+
+np.random.seed(2)
+tf.random.set_seed(2)
+
+f = open(metatrader_dir + "Parameters.txt", "r")
+model_path = re.sub('[^A-Za-z0-9_]+', '', f.readline().split(':')[1])
+best_model_path = os.path.join('.', 'best_models', model_path)
+colums_needed = list(pd.read_csv(os.path.join(best_model_path, 'columns_needed.csv'), header=None).T.values[0])
+my_imputer = SimpleImputer()
+
+# mm_scaler = MinMaxScaler(feature_range=(0, 1))  # or StandardScaler?
+mm_scaler = joblib.load(os.path.join(best_model_path, 'mm_scaler.joblib'))
+
+model = load_model(best_model_path, custom_objects={"f1_metric": f1_metric})
+
+print("Model is loaded. Ready to accept sockets...")
+
+class socketserver:
+    def __init__(self, address = 'localhost', port = 9090):
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.address = address
+        self.port = port
+        self.sock.bind((self.address, self.port))
+        self.cummdata = ''
+        
+    def recvmsg(self):
+        self.sock.listen(1)
+        self.conn, self.addr = self.sock.accept()
+        # print('connected to', self.addr)
+        self.cummdata = ''
+
+        while True:
+            data = self.conn.recv(10000)
+            self.cummdata+=data.decode("utf-8")
+            if not data:
+                break    
+            self.conn.send(bytes(start_prediction(self.cummdata), "utf-8"))
+            # self.conn.send(bytes(calcregr(self.cummdata), "utf-8"))
+            return self.cummdata
+            
+    def __del__(self):
+        self.sock.close()
+        
+def calcregr(msg = ''):
+    # print(msg)
+    items = msg.split(' ')
+    print(len(items))
+    return str('back')
+
+
+
 def reshape_as_image(x, img_width, img_height):
     x_temp = np.zeros((len(x), img_height, img_width))
     for i in range(x.shape[0]):
@@ -123,7 +122,8 @@ def reshape_as_image(x, img_width, img_height):
     return x_temp
 
 def start_prediction(msg = ''):
-    print(msg)
+    start_time = time.time()
+    # print(msg)
     msg_parts=msg.split('|')
     columns=msg_parts[0]
     columns = columns.split(',')
@@ -133,30 +133,14 @@ def start_prediction(msg = ''):
     data = np.array([features]).astype(np.float)
     df = pd.DataFrame(data, columns=columns)
 
-    np.random.seed(2)
-    tf.random.set_seed(2)
-
-    f = open(metatrader_dir+"Parameters.txt","r")
-    # print(f.readline().split(':')[1])
-    # f.readline().split(':')[1]
-    model_path = re.sub('[^A-Za-z0-9_]+', '', f.readline().split(':')[1])
-    best_model_path = os.path.join('.', 'best_models', model_path)
-
-    print(df.head())
-
-    colums_needed = list(pd.read_csv(os.path.join(best_model_path, 'columns_needed.csv'), header=None).T.values[0])
-    print(colums_needed)
     df = df[colums_needed]
     x_test = df.to_numpy()
     # print(1,x_test)
 
-    my_imputer = SimpleImputer()
+
     x_test = my_imputer.fit_transform(x_test)
     # print(2, x_test)
 
-
-    # mm_scaler = MinMaxScaler(feature_range=(0, 1))  # or StandardScaler?
-    mm_scaler = joblib.load(os.path.join(best_model_path, 'mm_scaler.joblib'))
     x_test = mm_scaler.transform(x_test)
     # print(3, x_test)
 
@@ -167,7 +151,6 @@ def start_prediction(msg = ''):
     # print(5, x_test)
 
 
-    model = load_model(best_model_path, custom_objects={"f1_metric": f1_metric})
     pred = model.predict(x_test)
     prob = np.max(pred, axis=1)
     pred_classes = np.argmax(pred, axis=1)
@@ -175,7 +158,7 @@ def start_prediction(msg = ''):
     print(prob)
     print('------------')
     print(pred_classes)
-
+    print("--- %s seconds ---" % (time.time() - start_time))
 
     return str("OK")
 
