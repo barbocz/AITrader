@@ -52,7 +52,7 @@ def init_variables():
     df_origin = pd.read_csv(metatrader_dir+"Testing.csv")
     df=df_origin
 
-    df_live_origin = pd.read_csv(metatrader_dir + "FeatureSockets.csv")
+    df_live_origin = pd.read_csv(metatrader_dir + "LiveTesting.csv")
     df_live=df_live_origin
 
     y_test = df['labels'].astype(np.int8).to_numpy()
@@ -202,7 +202,7 @@ pred_classes = np.argmax(pred, axis=1)
 combo = np.stack((df_live_origin['date'].to_numpy(),prob, pred_classes), axis=1)
 df = pd.DataFrame(combo)
 pd.set_option('display.max_rows', 200)
-df.to_csv(metatrader_dir+'output_new.csv',header=False,index=False)
+df.to_csv(metatrader_dir+'Predictions.csv',header=False,index=False)
 
 
 

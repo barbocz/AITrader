@@ -5,16 +5,16 @@ import pandas as pd,numpy as np
 
 import configparser
 
-cfg = configparser.ConfigParser()
-print(os.path.join('..', 'mt5','metatrader.ini'))
-cfg.read(os.path.join('..','..', 'mt5','metatrader.ini'))
-print(cfg['folders']['files'])
-metatrader_dir=cfg['folders']['files']
-f = open(metatrader_dir+"lastProject.txt", "r")
-last_project_dir=f.readline()
-print(last_project_dir)
-f = open(metatrader_dir+last_project_dir+"Parameters.txt", "r")
-print(f.readline())
+# cfg = configparser.ConfigParser()
+# print(os.path.join('..', 'mt5','metatrader.ini'))
+# cfg.read(os.path.join('..','..', 'mt5','metatrader.ini'))
+# print(cfg['folders']['files'])
+# metatrader_dir=cfg['folders']['files']
+# f = open(metatrader_dir+"lastProject.txt", "r")
+# last_project_dir=f.readline()
+# print(last_project_dir)
+# f = open(metatrader_dir+last_project_dir+"Parameters.txt", "r")
+# print(f.readline())
 
 # f = open(metatrader_dir+"Parameters.txt", "r")
 # model_path=re.sub('[^A-Za-z0-9]+', '', f.readline().split(':')[1])
@@ -39,7 +39,11 @@ print(f.readline())
 # # print(df.iloc[0:8,2]==2)
 # print(df[(df.iloc[:,2]==1) & (df.iloc[:,1]>0.80)].head(200))
 
-# metatrader_dir="C:\\Users\\melgibson\\AppData\Roaming\\MetaQuotes\\Terminal\\6E837615CE50F086D7E2801AA8E2160A\\MQL5\\Files\\"
+metatrader_dir="C:\\Users\\melgibson\\AppData\Roaming\\MetaQuotes\\Terminal\\6E837615CE50F086D7E2801AA8E2160A\\MQL5\\Files\\"
+df=pd.read_csv(metatrader_dir+"ref.csv")
+pred=df.to_numpy()
+s=str(np.max(pred, axis=1).item())+" - "+str(np.min(pred, axis=1).item())
+print(s)
 # df=pd.read_csv("output_new.csv")
 # df.to_csv(metatrader_dir+'output_new.csv',header=False,index=False)
 # os.system("copy  C:\\Users\\BARBOC~1\\AppData\\Roaming\\MetaQuotes\\Terminal\\67381DD86A2959850232C0BA725E5966\\MQL5\\Files\\*.* "+best_model_path)

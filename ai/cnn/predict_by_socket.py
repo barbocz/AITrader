@@ -127,9 +127,13 @@ def start_prediction(msg = ''):
     msg_parts=msg.split('|')
     columns=msg_parts[0]
     columns = columns.split(',')
+
     del columns[0]
     date_string=msg_parts[1].split(',')[0]
-    features=np.array(msg_parts[1].split(',')[1:])
+    features = np.array(msg_parts[1].split(','))
+    date=features[0]
+    features=np.array(features[1:])
+
     data = np.array([features]).astype(np.float)
     df = pd.DataFrame(data, columns=columns)
 
@@ -155,12 +159,12 @@ def start_prediction(msg = ''):
     prob = np.max(pred, axis=1)
     pred_classes = np.argmax(pred, axis=1)
 
-    print(prob)
-    print('------------')
-    print(pred_classes)
-    print("--- %s seconds ---" % (time.time() - start_time))
 
-    return str("OK")
+    r_string=date+","+str(prob.item())+","+str(pred_classes.item())
+    print(r_string)
+    # print("--- %s seconds ---" % (time.time() - start_time))
+
+    return str(r_string)
 
 serv = socketserver('127.0.0.1', 9090)
 
