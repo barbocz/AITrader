@@ -26,6 +26,7 @@ from numpy import save,load
 import joblib
 import configparser
 import time
+from sklearn.cluster import KMeans
 
 def f1_metric(y_true, y_pred):
     """
@@ -98,7 +99,7 @@ class socketserver:
             self.cummdata+=data.decode("utf-8")
             if not data:
                 break    
-            self.conn.send(bytes(start_prediction(self.cummdata), "utf-8"))
+            self.conn.send(bytes(message_processing(self.cummdata), "utf-8"))
             # self.conn.send(bytes(calcregr(self.cummdata), "utf-8"))
             return self.cummdata
             
@@ -121,16 +122,67 @@ def reshape_as_image(x, img_width, img_height):
 
     return x_temp
 
-def start_prediction(msg = ''):
+def message_processing(msg = ''):
     start_time = time.time()
-    # print(msg)
+    result="EMPTY"
+
     msg_parts=msg.split('|')
-    columns=msg_parts[0]
+    message_type=msg_parts[0]
+    print("message ",msg)
+    if (message_type=='PREDICTION'):
+        result=start_prediction(msg_parts)
+    if (message_type=='SL_TP'):
+        result=get_stoploss_takeprofit(msg_parts)
+
+    return result
+
+def get_optimum_clusters(data, saturation_point=0.05):
+    wcss = []
+    k_models = []
+
+    size = 11
+    for i in range(1, size):
+        kmeans = KMeans(n_clusters=i)
+        kmeans.fit(data)
+        wcss.append(kmeans.inertia_)
+        k_models.append(kmeans)
+
+    return k_models
+
+def get_stoploss_takeprofit(msg_parts):
+
+    columns = msg_parts[1].split(',')
+
+    lows = []
+    highs = []
+    for item in msg_parts[2:]:
+        h_l = item.split(',')
+        highs.append(h_l[0])
+        lows.append(h_l[1])
+
+    low = pd.DataFrame(np.array(lows).astype(np.float))
+    high = pd.DataFrame(np.array(highs).astype(np.float))
+
+    low_clusters = get_optimum_clusters(low)[3]
+    high_clusters = get_optimum_clusters(high)[3]
+
+    low_centers = low_clusters.cluster_centers_
+    high_centers = high_clusters.cluster_centers_
+
+    print(high_centers)
+    print(low_centers)
+
+    return ','.join([str(x) for x in high_centers]) + '|' + ','.join([str(x) for x in low_centers])
+
+
+def start_prediction(msg_parts):
+    columns=msg_parts[1]
+    print(columns)
     columns = columns.split(',')
 
     del columns[0]
-    date_string=msg_parts[1].split(',')[0]
-    features = np.array(msg_parts[1].split(','))
+    date_string=msg_parts[2].split(',')[0]
+    features = np.array(msg_parts[2].split(','))
     date=features[0]
     features=np.array(features[1:])
 
@@ -159,7 +211,7 @@ def start_prediction(msg = ''):
     prob = np.max(pred, axis=1)
     pred_classes = np.argmax(pred, axis=1)
 
-
+    print(pred)
     r_string=date+","+str(prob.item())+","+str(pred_classes.item())
     print(r_string)
     # print("--- %s seconds ---" % (time.time() - start_time))

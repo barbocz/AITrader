@@ -48,6 +48,7 @@ def init_variables():
     model_path = re.sub('[^A-Za-z0-9_]+', '', f.readline().split(':')[1])
 
     best_model_path = os.path.join('.', 'best_models', model_path)
+    print("best_model_path: ",best_model_path)
 
     df_origin = pd.read_csv(metatrader_dir+"Testing.csv")
     df=df_origin
@@ -202,7 +203,7 @@ pred_classes = np.argmax(pred, axis=1)
 combo = np.stack((df_live_origin['date'].to_numpy(),prob, pred_classes), axis=1)
 df = pd.DataFrame(combo)
 pd.set_option('display.max_rows', 200)
-df.to_csv(metatrader_dir+'Predictions.csv',header=False,index=False)
+df.to_csv(metatrader_dir+'LiveTestPredictions.csv',header=False,index=False)
 
 
 

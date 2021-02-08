@@ -22,6 +22,9 @@ from sklearn.metrics import f1_score
 from sklearn.metrics import confusion_matrix, roc_auc_score, cohen_kappa_score
 from numpy import save,load
 import configparser
+import time
+
+start = time.time()
 
 
 cfg = configparser.ConfigParser()
@@ -432,6 +435,8 @@ fit_model()
 
 model = load_model(best_model_path,custom_objects={"f1_metric": f1_metric})
 evaluate_model()
+end = time.time()
+print("execution time: ",(end - start))
 
 
 

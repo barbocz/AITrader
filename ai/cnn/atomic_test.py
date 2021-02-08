@@ -2,6 +2,106 @@ import os
 import re
 import pandas as pd,numpy as np
 # metatrader_dir="C:\\Users\\Barbocz Attila\\AppData\\Roaming\\MetaQuotes\\Terminal\\67381DD86A2959850232C0BA725E5966\\MQL5\Files\\"
+import configparser
+
+data="SL_TP|high,low|105.484,105.474|105.488,105.478|105.489,105.480|105.485,105.468|105.476,105.468|105.476,105.467|105.472,105.458|105.469,105.444"
+msg_parts=data.split('|')
+columns = msg_parts[1].split(',')
+
+
+lows=[]
+highs=[]
+result=''
+for item in msg_parts[2:]:
+    h_l=item.split(',')
+    highs.append(h_l[0])
+    lows.append(h_l[1])
+    result+=h_l[0]+","
+
+
+s1=','.join([str(x) for x in lows])
+s2=','.join([str(x) for x in highs])
+print(s1+'|'+s2)
+
+
+# lows = np.array(lows).astype(np.float)
+# print(lows.__class__)
+# # print(data.shape)
+# # # df = pd.DataFrame(data, columns=columns)
+# # #
+# # #
+# low = pd.DataFrame(lows)
+
+
+
+# # high = pd.DataFrame(data=data['high'], index=data.index)
+#
+# print(df['high'])
+
+
+# cfg = configparser.ConfigParser()
+# cfg.read(os.path.join('..','..', 'mt5','metatrader.ini'))
+# metatrader_dir=cfg['folders']['files']
+#
+# f = open(metatrader_dir+"lastProject.txt", "r")
+# last_project_dir=f.readline()
+# print("Project directory: ",last_project_dir)
+# metatrader_dir=metatrader_dir+last_project_dir
+# print("metatrader_dir: "+metatrader_dir)
+#
+# np.random.seed(2)
+#
+# num_features = 196
+#
+# f = open(metatrader_dir + "Parameters.txt", "r")
+# # print(f.readline().split(':')[1])
+# # f.readline().split(':')[1]
+# model_path = re.sub('[^A-Za-z0-9_]+', '', f.readline().split(':')[1])
+#
+# best_model_path = os.path.join('.', 'best_models', model_path)
+# try:
+#     os.mkdir(best_model_path)
+# except OSError:
+#     pass
+# else:
+#     print("Successfully created the directory %s " % best_model_path)
+#
+# df = pd.read_csv(metatrader_dir + "Training.csv")
+# df = df.drop(columns=['date', 'open', 'high', 'low'])
+#
+# df['labels'] = df['labels'].astype(np.int8)
+# print("Creating model for", model_path, " with ", df.shape, " shape")
+
+# df = df.drop(columns=df.columns[df.nunique() <= 1])
+# last_feature = df.columns.ravel()[df.columns.ravel().size - 2]
+#
+# list_features = list(df.loc[:, 'close':last_feature].columns)
+# print(list_features)
+# print('Total number of features', len(list_features))
+
+
+# f = open(metatrader_dir + "Parameters.txt", "r")
+# model_path = re.sub('[^A-Za-z0-9_]+', '', f.readline().split(':')[1])
+# best_model_path = os.path.join('.', 'best_models', model_path)
+# colums_needed = list(pd.read_csv(os.path.join(best_model_path, 'columns_needed.csv'), header=None).T.values[0])
+# print(colums_needed)
+#
+# msg="date,open,high,low,close,volume,mfi(5)_T3_B0,mfi(5)_T4_B0,mfi(5)_T6_B0,mfi(5)_T10_B0,mfi(5)_T12_B0,mfi(5)_T20_B0,mfi(5)_T15_B0,laguerre_rsi_wi_T3_B0,laguerre_rsi_wi_T4_B0,laguerre_rsi_wi_T6_B0,laguerre_rsi_wi_T10_B0,laguerre_rsi_wi_T12_B0,laguerre_rsi_wi_T20_B0,laguerre_rsi_wi_T15_B0,laguerre_rsi_wi_T3_B1,laguerre_rsi_wi_T4_B1,laguerre_rsi_wi_T6_B1,laguerre_rsi_wi_T10_B1,laguerre_rsi_wi_T12_B1,laguerre_rsi_wi_T20_B1,laguerre_rsi_wi_T15_B1,laguerre_rsi_wi_T3_B2,laguerre_rsi_wi_T4_B2,laguerre_rsi_wi_T6_B2,laguerre_rsi_wi_T10_B2,laguerre_rsi_wi_T12_B2,laguerre_rsi_wi_T20_B2,laguerre_rsi_wi_T15_B2,laguerre_rsi_wi_T3_B3,laguerre_rsi_wi_T4_B3,laguerre_rsi_wi_T6_B3,laguerre_rsi_wi_T10_B3,laguerre_rsi_wi_T12_B3,laguerre_rsi_wi_T20_B3,laguerre_rsi_wi_T15_B3,laguerre_rsi_wi_T3_B4,laguerre_rsi_wi_T4_B4,laguerre_rsi_wi_T6_B4,laguerre_rsi_wi_T10_B4,laguerre_rsi_wi_T12_B4,laguerre_rsi_wi_T20_B4,laguerre_rsi_wi_T15_B4,3_minutes_relat_T3_B0,3_minutes_relat_T4_B0,3_minutes_relat_T6_B0,3_minutes_relat_T10_B0,3_minutes_relat_T12_B0,3_minutes_relat_T20_B0,3_minutes_relat_T15_B0,3_minutes_relat_T3_B1,3_minutes_relat_T4_B1,3_minutes_relat_T6_B1,3_minutes_relat_T10_B1,3_minutes_relat_T12_B1,3_minutes_relat_T20_B1,3_minutes_relat_T15_B1,3_minutes_relat_T3_B2,3_minutes_relat_T4_B2,3_minutes_relat_T6_B2,3_minutes_relat_T10_B2,3_minutes_relat_T12_B2,3_minutes_relat_T20_B2,3_minutes_relat_T15_B2,3_minutes_relat_T3_B3,3_minutes_relat_T4_B3,3_minutes_relat_T6_B3,3_minutes_relat_T10_B3,3_minutes_relat_T12_B3,3_minutes_relat_T20_B3,3_minutes_relat_T15_B3,3_minutes_relat_T3_B4,3_minutes_relat_T4_B4,3_minutes_relat_T6_B4,3_minutes_relat_T10_B4,3_minutes_relat_T12_B4,3_minutes_relat_T20_B4,3_minutes_relat_T15_B4,3_minutes_relat_T3_B5,3_minutes_relat_T4_B5,3_minutes_relat_T6_B5,3_minutes_relat_T10_B5,3_minutes_relat_T12_B5,3_minutes_relat_T20_B5,3_minutes_relat_T15_B5,3_minutes_relat_T3_B6,3_minutes_relat_T4_B6,3_minutes_relat_T6_B6,3_minutes_relat_T10_B6,3_minutes_relat_T12_B6,3_minutes_relat_T20_B6,3_minutes_relat_T15_B6,3_minutes_relat_T3_B7,3_minutes_relat_T4_B7,3_minutes_relat_T6_B7,3_minutes_relat_T10_B7,3_minutes_relat_T12_B7,3_minutes_relat_T20_B7,3_minutes_relat_T15_B7,3_minutes_relat_T3_B8,3_minutes_relat_T4_B8,3_minutes_relat_T6_B8,3_minutes_relat_T10_B8,3_minutes_relat_T12_B8,3_minutes_relat_T20_B8,3_minutes_relat_T15_B8,rsi(14)_T3_B0,rsi(14)_T4_B0,rsi(14)_T6_B0,rsi(14)_T10_B0,rsi(14)_T12_B0,rsi(14)_T20_B0,rsi(14)_T15_B0,waddah_attar_ex_T3_B0,waddah_attar_ex_T4_B0,waddah_attar_ex_T6_B0,waddah_attar_ex_T10_B0,waddah_attar_ex_T12_B0,waddah_attar_ex_T20_B0,waddah_attar_ex_T15_B0,waddah_attar_ex_T3_B1,waddah_attar_ex_T4_B1,waddah_attar_ex_T6_B1,waddah_attar_ex_T10_B1,waddah_attar_ex_T12_B1,waddah_attar_ex_T20_B1,waddah_attar_ex_T15_B1,waddah_attar_ex_T3_B2,waddah_attar_ex_T4_B2,waddah_attar_ex_T6_B2,waddah_attar_ex_T10_B2,waddah_attar_ex_T12_B2,waddah_attar_ex_T20_B2,waddah_attar_ex_T15_B2,waddah_attar_ex_T3_B3,waddah_attar_ex_T4_B3,waddah_attar_ex_T6_B3,waddah_attar_ex_T10_B3,waddah_attar_ex_T12_B3,waddah_attar_ex_T20_B3,waddah_attar_ex_T15_B3,macd(12_26_9)_T3_B0,macd(12_26_9)_T4_B0,macd(12_26_9)_T6_B0,macd(12_26_9)_T10_B0,macd(12_26_9)_T12_B0,macd(12_26_9)_T20_B0,macd(12_26_9)_T15_B0,macd(12_26_9)_T3_B1,macd(12_26_9)_T4_B1,macd(12_26_9)_T6_B1,macd(12_26_9)_T10_B1,macd(12_26_9)_T12_B1,macd(12_26_9)_T20_B1,macd(12_26_9)_T15_B1,stoch(8_5_3)_T3_B0,stoch(8_5_3)_T4_B0,stoch(8_5_3)_T6_B0,stoch(8_5_3)_T10_B0,stoch(8_5_3)_T12_B0,stoch(8_5_3)_T20_B0,stoch(8_5_3)_T15_B0,stoch(8_5_3)_T3_B1,stoch(8_5_3)_T4_B1,stoch(8_5_3)_T6_B1,stoch(8_5_3)_T10_B1,stoch(8_5_3)_T12_B1,stoch(8_5_3)_T20_B1,stoch(8_5_3)_T15_B1,murreys_math_os_T3_B0,murreys_math_os_T4_B0,murreys_math_os_T6_B0,murreys_math_os_T10_B0,murreys_math_os_T12_B0,murreys_math_os_T20_B0,murreys_math_os_T15_B0,murreys_math_os_T3_B1,murreys_math_os_T4_B1,murreys_math_os_T6_B1,murreys_math_os_T10_B1,murreys_math_os_T12_B1,murreys_math_os_T20_B1,murreys_math_os_T15_B1,sonicr_pva_volu_T3_B0,sonicr_pva_volu_T4_B0,sonicr_pva_volu_T6_B0,sonicr_pva_volu_T10_B0,sonicr_pva_volu_T12_B0,sonicr_pva_volu_T20_B0,sonicr_pva_volu_T15_B0,sonicr_pva_volu_T3_B1,sonicr_pva_volu_T4_B1,sonicr_pva_volu_T6_B1,sonicr_pva_volu_T10_B1,sonicr_pva_volu_T12_B1,sonicr_pva_volu_T20_B1,sonicr_pva_volu_T15_B1,sonicr_pva_volu_T3_B2,sonicr_pva_volu_T4_B2,sonicr_pva_volu_T6_B2,sonicr_pva_volu_T10_B2,sonicr_pva_volu_T12_B2,sonicr_pva_volu_T20_B2,sonicr_pva_volu_T15_B2,adx_wilder(14)_T3_B0,adx_wilder(14)_T4_B0,adx_wilder(14)_T6_B0,adx_wilder(14)_T10_B0,adx_wilder(14)_T12_B0,adx_wilder(14)_T20_B0,adx_wilder(14)_T15_B0,adx_wilder(14)_T3_B1,adx_wilder(14)_T4_B1,adx_wilder(14)_T6_B1,adx_wilder(14)_T10_B1,adx_wilder(14)_T12_B1,adx_wilder(14)_T20_B1,adx_wilder(14)_T15_B1,adx_wilder(14)_T3_B2,adx_wilder(14)_T4_B2,adx_wilder(14)_T6_B2,adx_wilder(14)_T10_B2,adx_wilder(14)_T12_B2,adx_wilder(14)_T20_B2,adx_wilder(14)_T15_B2,atr(8)_T3_B0,atr(8)_T4_B0,atr(8)_T6_B0,atr(8)_T10_B0,atr(8)_T12_B0,atr(8)_T20_B0,atr(8)_T15_B0,murreys_math_os_T3_B0,murreys_math_os_T4_B0,murreys_math_os_T6_B0,murreys_math_os_T10_B0,murreys_math_os_T12_B0,murreys_math_os_T20_B0,murreys_math_os_T15_B0,murreys_math_os_T3_B1,murreys_math_os_T4_B1,murreys_math_os_T6_B1,murreys_math_os_T10_B1,murreys_math_os_T12_B1,murreys_math_os_T20_B1,murreys_math_os_T15_B1,t3_velocity_T3_B0,t3_velocity_T4_B0,t3_velocity_T6_B0,t3_velocity_T10_B0,t3_velocity_T12_B0,t3_velocity_T20_B0,t3_velocity_T15_B0,t3_velocity_T3_B1,t3_velocity_T4_B1,t3_velocity_T6_B1,t3_velocity_T10_B1,t3_velocity_T12_B1,t3_velocity_T20_B1,t3_velocity_T15_B1,t3_velocity_T3_B2,t3_velocity_T4_B2,t3_velocity_T6_B2,t3_velocity_T10_B2,t3_velocity_T12_B2,t3_velocity_T20_B2,t3_velocity_T15_B2,t3_velocity_T3_B3,t3_velocity_T4_B3,t3_velocity_T6_B3,t3_velocity_T10_B3,t3_velocity_T12_B3,t3_velocity_T20_B3,t3_velocity_T15_B3|2021.01.22 17:27,1.21763,1.21788,1.21751,1.21784,293,42.32427,44.34634,61.67399,81.63873,89.03999,56.99116,80.58814,0.65000,0.65000,0.65000,0.65000,0.65000,0.65000,0.65000,0.35000,0.35000,0.35000,0.35000,0.35000,0.35000,0.35000,0.84785,0.96411,1.00000,0.89455,0.78015,0.41823,0.69816,0.00000,1.00000,1.00000,1.00000,0.00000,0.00000,0.00000,0.90567,0.77809,0.56113,0.26079,0.24289,0.45604,0.26616,63.50276,56.58097,59.08136,42.27227,47.74013,48.62353,59.59048,63.28697,55.17118,54.82195,40.70997,45.36687,47.83018,56.43094,63.28697,55.17118,54.82195,40.70997,45.36687,47.83018,56.43094,57.49556,48.87373,48.43282,38.36651,41.80698,46.64016,51.69163,51.70415,42.57628,42.04370,36.02305,38.24709,45.45014,46.95231,63.50276,56.58097,59.08136,42.27227,47.74013,48.62353,59.59048,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.21784,1.21800,1.21800,1.21800,1.21800,1.21800,1.21800,0.00000,0.00000,1.00000,1.00000,1.00000,1.00000,1.00000,60.92751,63.35066,62.21947,62.38172,59.69843,58.97611,58.12888,0.00118,0.00390,0.00540,0.00692,0.00698,0.00700,0.00711,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,0.00324,0.00345,0.00324,0.00285,0.00327,0.00281,0.00337,0.00400,0.00400,0.00400,0.00400,0.00400,0.00400,0.00400,0.00043,0.00042,0.00035,0.00020,0.00016,0.00009,0.00016,0.00041,0.00031,0.00012,-0.00010,-0.00012,-0.00006,-0.00011,34.74320,62.99810,76.60131,81.96721,87.26257,87.23926,85.76123,68.65824,79.76074,88.82959,85.63996,82.30812,47.93457,72.05217,0.57516,0.67974,0.67974,0.54354,0.45198,0.48947,0.48947,2.00000,2.00000,2.00000,2.00000,1.00000,1.00000,1.00000,293.00000,499.00000,294.00000,294.00000,783.00000,1227.00000,294.00000,0.00000,1.00000,0.00000,0.00000,0.00000,0.00000,0.00000,0.06153,0.09481,0.13524,0.04410,0.42282,0.78528,0.08232,23.52385,22.52223,19.39805,18.48317,17.26116,15.23444,16.35415,25.84468,27.57071,31.14819,27.14842,28.39809,28.59052,28.21768,23.31706,18.94274,20.39221,20.80047,18.87258,20.04629,17.98902,0.00040,0.00049,0.00058,0.00074,0.00092,0.00105,0.00093,0.44745,0.45198,0.48947,0.48947,0.48947,0.74029,0.63941,1.00000,1.00000,1.00000,1.00000,1.00000,2.00000,2.00000,0.00063,0.00071,0.00074,0.00046,0.00025,-0.00018,0.00012,0.00000,0.00000,0.00000,0.00000,0.00000,1.00000,0.00000,0.00063,0.00071,0.00074,0.00046,0.00025,-0.00018,0.00012,1.00000,1.00000,0.00000,0.00000,0.00000,0.00000,0.00000"
+# msg_parts = msg.split('|')
+# columns = msg_parts[0]
+# columns = columns.split(',')
+#
+# del columns[0]
+# date_string = msg_parts[1].split(',')[0]
+# features = np.array(msg_parts[1].split(','))
+# date = features[0]
+# features = np.array(features[1:])
+#
+# data = np.array([features]).astype(np.float)
+# df = pd.DataFrame(data, columns=columns)
+
+
+# df = df[colums_needed]
 
 import configparser
 
@@ -39,11 +139,11 @@ import configparser
 # # print(df.iloc[0:8,2]==2)
 # print(df[(df.iloc[:,2]==1) & (df.iloc[:,1]>0.80)].head(200))
 
-metatrader_dir="C:\\Users\\melgibson\\AppData\Roaming\\MetaQuotes\\Terminal\\6E837615CE50F086D7E2801AA8E2160A\\MQL5\\Files\\"
-df=pd.read_csv(metatrader_dir+"ref.csv")
-pred=df.to_numpy()
-s=str(np.max(pred, axis=1).item())+" - "+str(np.min(pred, axis=1).item())
-print(s)
+# metatrader_dir="C:\\Users\\melgibson\\AppData\Roaming\\MetaQuotes\\Terminal\\6E837615CE50F086D7E2801AA8E2160A\\MQL5\\Files\\"
+# df=pd.read_csv(metatrader_dir+"ref.csv")
+# pred=df.to_numpy()
+# s=str(np.max(pred, axis=1).item())+" - "+str(np.min(pred, axis=1).item())
+# print(s)
 # df=pd.read_csv("output_new.csv")
 # df.to_csv(metatrader_dir+'output_new.csv',header=False,index=False)
 # os.system("copy  C:\\Users\\BARBOC~1\\AppData\\Roaming\\MetaQuotes\\Terminal\\67381DD86A2959850232C0BA725E5966\\MQL5\\Files\\*.* "+best_model_path)
