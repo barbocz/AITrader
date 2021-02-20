@@ -27,6 +27,10 @@ import joblib
 import configparser
 import time
 from sklearn.cluster import KMeans
+import util.project as project
+
+project.set()
+print('Running ',project.model_path+' prediction...')
 
 def f1_metric(y_true, y_pred):
     """
@@ -54,34 +58,34 @@ def f1_metric(y_true, y_pred):
 
     return 2 * ((precision * recall) / (precision + recall + K.epsilon()))
 
-# Együttműködik az MT5 Script folder-ben található Getdata script-tel. Ha abban az IsSocketSending=true, akkor a script küldi ennek a megfelelő socket-et
-cfg = configparser.ConfigParser()
-cfg.read(os.path.join('..','..', 'mt5','metatrader.ini'))
-metatrader_dir=cfg['folders']['files']
-
-f = open(metatrader_dir+"lastProject.txt", "r")
-last_project_dir=f.readline()
-print("Project directory: ",last_project_dir)
-metatrader_dir=metatrader_dir+last_project_dir
+# # Együttműködik az MT5 Script folder-ben található Getdata script-tel. Ha abban az IsSocketSending=true, akkor a script küldi ennek a megfelelő socket-et
+# cfg = configparser.ConfigParser()
+# cfg.read(os.path.join('..','..', 'mt5','metatrader.ini'))
+# metatrader_dir=cfg['folders']['files']
+#
+# f = open(metatrader_dir+"lastProject.txt", "r")
+# last_project_dir=f.readline()
+# print("Project directory: ",last_project_dir)
+# metatrader_dir=metatrader_dir+last_project_dir
 
 np.random.seed(2)
 tf.random.set_seed(2)
 
-f = open(metatrader_dir + "Parameters.txt", "r")
-model_path = re.sub('[^A-Za-z0-9_]+', '', f.readline().split(':')[1])
-best_model_path = os.path.join('.', 'best_models', model_path)
-colums_needed = list(pd.read_csv(os.path.join(best_model_path, 'columns_needed.csv'), header=None).T.values[0])
+# f = open(metatrader_dir + "Parameters.txt", "r")
+# model_path = re.sub('[^A-Za-z0-9_]+', '', f.readline().split(':')[1])
+# best_model_path = os.path.join('.', 'best_models', model_path)
+colums_needed = list(pd.read_csv(os.path.join(project.model_path, 'columns_needed.csv'), header=None).T.values[0])
 my_imputer = SimpleImputer()
 
 # mm_scaler = MinMaxScaler(feature_range=(0, 1))  # or StandardScaler?
-mm_scaler = joblib.load(os.path.join(best_model_path, 'mm_scaler.joblib'))
+mm_scaler = joblib.load(os.path.join(project.model_path, 'mm_scaler.joblib'))
 
-model = load_model(best_model_path, custom_objects={"f1_metric": f1_metric})
+model = load_model(project.model_path, custom_objects={"f1_metric": f1_metric})
 
 print("Model is loaded. Ready to accept sockets...")
 
 class socketserver:
-    def __init__(self, address = 'localhost', port = 9090):
+    def __init__(self, address = 'localhost', port = project.socket_port):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.address = address
         self.port = port
@@ -218,7 +222,7 @@ def start_prediction(msg_parts):
 
     return str(r_string)
 
-serv = socketserver('127.0.0.1', 9090)
+serv = socketserver('127.0.0.1', project.socket_port)
 
 while True:
     msg = serv.recvmsg()

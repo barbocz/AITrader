@@ -23,41 +23,48 @@ from sklearn.metrics import confusion_matrix, roc_auc_score, cohen_kappa_score
 from numpy import save,load
 import warnings
 import configparser
+import sys
+import util.project as project
 
+project.set()
+print('Running ',project.model_path+' model...')
 
-cfg = configparser.ConfigParser()
-cfg.read(os.path.join('..','..', 'mt5','metatrader.ini'))
-metatrader_dir=cfg['folders']['files']
-
-f = open(metatrader_dir+"lastProject.txt", "r")
-last_project_dir=f.readline()
-print("Project directory: ",last_project_dir)
-metatrader_dir=metatrader_dir+last_project_dir
+# cfg = configparser.ConfigParser()
+# cfg.read(os.path.join('..','..', 'mt5','metatrader.ini'))
+# metatrader_dir=cfg['folders']['files']
+#
+# if (len(sys.argv)==1):
+#     f = open(metatrader_dir+"lastProject.txt", "r")
+#     last_project_dir=f.readline()
+#     print("Project directory: ",last_project_dir)
+#     metatrader_dir=metatrader_dir+last_project_dir
+# else:
+#     metatrader_dir=metatrader_dir + '\\'.join(map(str, sys.argv[1:])) + '\\'
 
 
 def init_variables():
 
-    global df,x_test,y_test,best_model_path,df_origin, x_test_live, df_live_origin
+    global df,x_test,y_test,df_origin, x_test_live, df_live_origin
     np.random.seed(2)
     tf.random.set_seed(2)
     num_features=196
 
-    f = open(metatrader_dir+"Parameters.txt","r")
-    # print(f.readline().split(':')[1])
-    # f.readline().split(':')[1]
-    model_path = re.sub('[^A-Za-z0-9_]+', '', f.readline().split(':')[1])
+    # f = open(metatrader_dir+"Parameters.txt","r")
+    # # print(f.readline().split(':')[1])
+    # # f.readline().split(':')[1]
+    # model_path = re.sub('[^A-Za-z0-9_]+', '', f.readline().split(':')[1])
+    #
+    # best_model_path = os.path.join('.', 'best_models', model_path)
+    # print("best_model_path: ",best_model_path)
 
-    best_model_path = os.path.join('.', 'best_models', model_path)
-    print("best_model_path: ",best_model_path)
-
-    df_origin = pd.read_csv(metatrader_dir+"Testing.csv")
+    df_origin = pd.read_csv(project.metatrader_dir+"Testing.csv")
     df=df_origin
 
-    df_live_origin = pd.read_csv(metatrader_dir + "LiveTesting.csv")
+    df_live_origin = pd.read_csv(project.metatrader_dir + "LiveTesting.csv")
     df_live=df_live_origin
 
     y_test = df['labels'].astype(np.int8).to_numpy()
-    colums_needed = list(pd.read_csv(os.path.join(best_model_path, 'columns_needed.csv'), header=None).T.values[0])
+    colums_needed = list(pd.read_csv(os.path.join(project.model_path, 'columns_needed.csv'), header=None).T.values[0])
 
     df = df[colums_needed]
 
@@ -69,7 +76,7 @@ def init_variables():
 
 
 def data_wrangling():
-    global x_test,y_test, x_test_live,best_model_path
+    global x_test,y_test, x_test_live
     my_imputer = SimpleImputer()
     x_test = my_imputer.fit_transform(x_test)
     x_test_live = my_imputer.fit_transform(x_test_live)
@@ -78,7 +85,7 @@ def data_wrangling():
     # x_test_live= my_imputer.fit_transform(x_test_live)
     # mm_scaler = MinMaxScaler(feature_range=(0, 1))  # or StandardScaler?
     import joblib
-    mm_scaler = joblib.load(os.path.join(best_model_path, 'mm_scaler.joblib'))
+    mm_scaler = joblib.load(os.path.join(project.model_path, 'mm_scaler.joblib'))
     x_test = mm_scaler.transform(x_test)
     x_test_live = mm_scaler.transform(x_test_live)
 
@@ -188,7 +195,7 @@ init_variables()
 data_wrangling()
 reshape_arrays()
 
-model = load_model(best_model_path,custom_objects={"f1_metric": f1_metric})
+model = load_model(project.model_path,custom_objects={"f1_metric": f1_metric})
 evaluate_model()
 
 
@@ -203,7 +210,7 @@ pred_classes = np.argmax(pred, axis=1)
 combo = np.stack((df_live_origin['date'].to_numpy(),prob, pred_classes), axis=1)
 df = pd.DataFrame(combo)
 pd.set_option('display.max_rows', 200)
-df.to_csv(metatrader_dir+'LiveTestPredictions.csv',header=False,index=False)
+df.to_csv(project.metatrader_dir+'Predictions.csv',header=False,index=False)
 
 
 

@@ -4,24 +4,54 @@ import pandas as pd,numpy as np
 # metatrader_dir="C:\\Users\\Barbocz Attila\\AppData\\Roaming\\MetaQuotes\\Terminal\\67381DD86A2959850232C0BA725E5966\\MQL5\Files\\"
 import configparser
 
-data="SL_TP|high,low|105.484,105.474|105.488,105.478|105.489,105.480|105.485,105.468|105.476,105.468|105.476,105.467|105.472,105.458|105.469,105.444"
-msg_parts=data.split('|')
-columns = msg_parts[1].split(',')
+
+import sys
+import util.project as project
+project.set()
+print(project.socket_port)
+
+colums_needed = list(pd.read_csv(os.path.join(project.model_path, 'columns_needed.csv'), header=None).T.values[0])
+print(colums_needed)
+
+# import configparser
+#
+#
+# cfg = configparser.ConfigParser()
+# cfg.read(os.path.join('..','..','GBPUSD_V0208M12.ini'))
+# metatrader_dir=cfg['parameters']['metatrader_dir']
+# port=cfg['parameters']['socket_port']
+# print(metatrader_dir,port)
+
+# f = open(metatrader_dir+"lastProject.txt", "r")
+# last_project_dir=f.readline()
+# print("Project directory: ",last_project_dir)
+#
+# print(metatrader_dir+last_project_dir)
+# print(metatrader_dir+'\\'.join(map(str,sys.argv[1:]))+'\\')
+# metatrader_dir=metatrader_dir+
+
+# print ('Number of arguments:', len(sys.argv), 'arguments.')
+# print ('Argument List:', sys.argv[1], sys.argv[2])
 
 
-lows=[]
-highs=[]
-result=''
-for item in msg_parts[2:]:
-    h_l=item.split(',')
-    highs.append(h_l[0])
-    lows.append(h_l[1])
-    result+=h_l[0]+","
-
-
-s1=','.join([str(x) for x in lows])
-s2=','.join([str(x) for x in highs])
-print(s1+'|'+s2)
+# data="SL_TP|high,low|105.484,105.474|105.488,105.478|105.489,105.480|105.485,105.468|105.476,105.468|105.476,105.467|105.472,105.458|105.469,105.444"
+# msg_parts=data.split('|')
+# columns = msg_parts[1].split(',')
+#
+#
+# lows=[]
+# highs=[]
+# result=''
+# for item in msg_parts[2:]:
+#     h_l=item.split(',')
+#     highs.append(h_l[0])
+#     lows.append(h_l[1])
+#     result+=h_l[0]+","
+#
+#
+# s1=','.join([str(x) for x in lows])
+# s2=','.join([str(x) for x in highs])
+# print(s1+'|'+s2)
 
 
 # lows = np.array(lows).astype(np.float)
