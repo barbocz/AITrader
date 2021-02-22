@@ -29,6 +29,6 @@ def set():
     symbol = cfg['parameters']['symbol']
     model_name = cfg['parameters']['model_name']
     metatrader_dir = cfg['parameters']['metatrader_dir'] + 'AI\\' + ml_type + '\\' + symbol + '\\' + model_name + '\\'
-    socket_port=cfg['parameters']['socket_port']
+    socket_port=int(cfg['parameters']['socket_port'])
     model_path='best_models\\'+symbol+'_'+model_name
 
